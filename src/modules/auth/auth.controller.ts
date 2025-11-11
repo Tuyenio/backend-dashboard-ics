@@ -8,7 +8,9 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Inject,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import {
   RegisterDto,
@@ -22,7 +24,10 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   /**
    * Đăng ký user mới
@@ -78,8 +83,10 @@ export class AuthController {
   async googleAuthCallback(@Request() req, @Response() res) {
     const result = await this.authService.googleLogin(req);
     
-    // Redirect về frontend với token
-    const redirectUrl = `http://localhost:3000/auth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+    // Lấy frontend URL từ environment variable
+    const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:5002';
+    const redirectUrl = `${frontendUrl}/auth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+    
     return res.redirect(redirectUrl);
   }
 
