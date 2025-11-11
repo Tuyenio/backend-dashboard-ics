@@ -4,6 +4,7 @@ import {
   Body,
   UseGuards,
   Request,
+  Response,
   HttpCode,
   HttpStatus,
   Get,
@@ -74,8 +75,12 @@ export class AuthController {
    */
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthCallback(@Request() req) {
-    return await this.authService.googleLogin(req);
+  async googleAuthCallback(@Request() req, @Response() res) {
+    const result = await this.authService.googleLogin(req);
+    
+    // Redirect về frontend với token
+    const redirectUrl = `http://localhost:3000/auth/callback?token=${result.access_token}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+    return res.redirect(redirectUrl);
   }
 
   /**
